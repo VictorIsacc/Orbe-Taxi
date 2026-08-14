@@ -1,0 +1,21 @@
+.lite-map{position:relative;overflow:hidden;touch-action:none;background:#dce8e1}
+.lite-map-viewport,.lite-map-tiles,.lite-map-overlays{position:absolute;inset:0}
+.lite-map-tiles{overflow:hidden;background:linear-gradient(135deg,#dce8e1,#cbdcd2)}
+.lite-map-tile{position:absolute;width:256px;height:256px;max-width:none!important;user-select:none;pointer-events:none;transition:filter .25s ease}
+.lite-map-tile.tile-error,.lite-map-tile.tile-timeout{background:linear-gradient(135deg,#dce8e1,#cfddd5);border:1px solid rgba(0,0,0,.025)}
+.lite-map-overlays{pointer-events:none;overflow:hidden}
+.lite-marker,.lite-circle{position:absolute;left:0;top:0;will-change:transform}
+.lite-marker{pointer-events:auto}
+.lite-circle{border-radius:50%;pointer-events:none}
+.lite-polyline{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.lite-polyline polyline{filter:drop-shadow(0 1px 1.5px rgba(255,255,255,.72))}
+.leaflet-control-attribution{position:absolute;z-index:650;right:4px;top:4px;padding:3px 6px;border-radius:6px;font-size:9px;background:rgba(255,255,255,.86);color:#315047;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.leaflet-control-attribution a{color:#087a4e}
+.lite-zoom{position:absolute;z-index:700;right:12px;top:38px;display:grid;border:1px solid rgba(10,52,39,.16);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.92);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+.lite-zoom button{width:38px;height:36px;border:0;border-bottom:1px solid rgba(10,52,39,.12);background:transparent;color:#163c31;font-size:21px;cursor:pointer}
+.lite-zoom button:last-child{border-bottom:0}
+[data-theme="dark"] .lite-map,[data-theme="dark"] .lite-map-tiles{background:#14231d}
+[data-theme="dark"] .lite-map-tile{filter:invert(.88) hue-rotate(175deg) brightness(.68) contrast(1.22) saturate(.58)}
+[data-theme="dark"] .lite-polyline polyline{filter:drop-shadow(0 1px 2px rgba(0,0,0,.85))}
+[data-theme="dark"] .leaflet-control-attribution,[data-theme="dark"] .lite-zoom{background:rgba(25,39,33,.92);color:#e7f3ed}
+[data-theme="dark"] .leaflet-control-attribution a,[data-theme="dark"] .lite-zoom button{color:#9ce2c3}

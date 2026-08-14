@@ -13,19 +13,19 @@
   "categories": ["navigation", "travel", "business"],
   "icons": [
     {
-      "src": "./icons/orbe-taxi-v2-192.png",
+      "src": "./orbe-taxi-v2-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/orbe-taxi-v2-512.png",
+      "src": "./orbe-taxi-v2-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/orbe-taxi-v2-maskable-512.png",
+      "src": "./orbe-taxi-v2-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

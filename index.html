@@ -11,10 +11,10 @@
   <meta name="description" content="Orbe Taxi: simulador de rutas y tarifas urbanas e interurbanas para Granada.">
   <title>Orbe Taxi | Simulador de rutas y tarifas</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/orbe-taxi-v2-192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/orbe-taxi-v2-180.png">
-  <link rel="preconnect" href="https://tiles.openfreemap.org">
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.css">
+  <link rel="icon" type="image/png" sizes="192x192" href="./orbe-taxi-v2-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./orbe-taxi-v2-180.png">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="stylesheet" href="./leaflet-lite.css?v=2.1">
   <style>
     :root {
       color-scheme: light;
@@ -39,6 +39,7 @@
     .brand-mark { width:40px; height:40px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(145deg,var(--green),var(--green-2)); color:#fff; box-shadow:0 8px 20px rgba(11,143,91,.28); font-size:22px; transform:rotate(-8deg) }
     .brand-copy { display:flex; flex-direction:column }
     .brand-copy strong { font-size:17px; letter-spacing:-.35px }
+    .brand-signature { margin-left:4px; color:var(--muted); font-size:9px; font-weight:650; letter-spacing:0; white-space:nowrap }
     .brand-copy small { color:var(--muted); font-size:10px; margin-top:2px }
     .top-actions { display:flex; align-items:center; gap:9px }
     .pill { min-height:34px; padding:0 12px; display:flex; align-items:center; gap:6px; border-radius:999px; background:var(--green-soft); color:var(--green); font-size:10px; font-weight:750 }
@@ -153,7 +154,7 @@
     .source-links { display:flex; flex-wrap:wrap; gap:6px }
     .source-links a { padding:5px 7px; border:1px solid var(--line); border-radius:7px; color:var(--green); text-decoration:none; font-size:7px; font-weight:750 }
     .footer { padding:14px 4px 4px; color:var(--muted); text-align:center; font-size:8px }
-    .maplibregl-ctrl-group { border-radius:10px!important; overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,.16)!important }
+    .route-map-marker { width:16px; height:16px; border:3px solid white; border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,.3) }
     @media (max-width:980px) {
       .workspace { grid-template-columns:340px minmax(0,1fr) }
       .details { grid-template-columns:1fr 1fr }.legal { grid-column:1/-1 }
@@ -184,7 +185,7 @@
     <header class="topbar">
       <a class="brand" href="#simulador" aria-label="Orbe Taxi, inicio">
         <span class="brand-mark" aria-hidden="true">➤</span>
-        <span class="brand-copy"><strong>Orbe Taxi</strong><small>Simulador de rutas y tarifas</small></span>
+        <span class="brand-copy"><strong>Orbe Taxi <span class="brand-signature">by Vigabar®</span></strong><small>Simulador de rutas y tarifas</small></span>
       </a>
       <div class="top-actions">
         <span class="pill">✓ Consulta orientativa</span>
@@ -333,7 +334,7 @@
     <footer class="footer">Orbe Taxi · Prototipo privado para simulación de servicios · Granada</footer>
   </div>
 
-  <script src="https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js"></script>
+  <script src="./leaflet-lite.js?v=2.1"></script>
   <script>
     "use strict";
 
@@ -349,6 +350,7 @@
     const APC = new Set(["granada","cenes de la vega","pulianas","maracena","peligros","churriana de la vega","ogijares","vegas del genil","armilla","huetor vega","cajar","jun","la zubia"]);
     const HOLIDAYS_2026 = new Set(["2026-01-01","2026-01-06","2026-02-28","2026-04-02","2026-04-03","2026-05-01","2026-08-15","2026-10-12","2026-11-02","2026-12-07","2026-12-08","2026-12-25"]);
     const COLORS = ["#0b8f5b","#f4a72c","#6c74de"];
+    const DARK_COLORS = ["#47e5a5","#ffc04d","#aab2ff"];
     const APC_SUPPLEMENT = .53;
     const SAMPLE_ROUTES = [
       {name:"Más rápida con peaje",via:"A-92 · A-45 · AP-46 · MA-20",distanceKm:126.4,durationMin:86,geometry:[[-3.5986,37.1773],[-4.151,37.166],[-4.421,36.91],[-4.499,36.676],[-4.488,36.675]],mix:{motorway:84,national:10,secondary:6},tollRoad:"AP-46"},
@@ -357,10 +359,11 @@
     ];
 
     const $ = id => document.getElementById(id);
-    const state = {rawRoutes:SAMPLE_ROUTES,routes:SAMPLE_ROUTES,selected:0,isApc:false,serviceType:"immediate",routePreference:"all",manualTolls:{},luggage:0,currentCoords:null,map:null,mapReady:false,markers:[]};
+    const state = {rawRoutes:SAMPLE_ROUTES,routes:SAMPLE_ROUTES,selected:0,isApc:false,serviceType:"immediate",routePreference:"all",manualTolls:{},luggage:0,currentCoords:null,map:null,mapReady:false,markers:[],routeLayers:[],gpsWatchId:null,gpsTimer:null};
     const euros = value => new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(value || 0);
     const normalize = value => (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
     const isApcMunicipality = value => APC.has(normalize(value));
+    const routeColor = index => (document.documentElement.dataset.theme==="dark"?DARK_COLORS:COLORS)[index] || (document.documentElement.dataset.theme==="dark"?DARK_COLORS[0]:COLORS[0]);
 
     function isoLocalDate(date) {
       const offset = date.getTimezoneOffset() * 60000;
@@ -513,35 +516,42 @@
     }
 
     function initMap() {
-      if (!window.maplibregl) { $("mapMessage").style.display="grid"; return; }
+      if (!window.L) {
+        $("mapMessage").textContent="No se pudo iniciar el visor local del mapa.";
+        $("mapMessage").style.display="grid";
+        return;
+      }
       try {
-        state.map = new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/liberty",center:[-3.76,37.02],zoom:7.4,attributionControl:false});
-        state.map.addControl(new maplibregl.NavigationControl({showCompass:true}),"top-right");
-        state.map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
-        state.map.on("load",() => { state.mapReady=true; drawRoutes(true); });
-        state.map.on("error",event => { if (!state.mapReady && event && event.error) $("mapMessage").style.display="grid"; });
-      } catch (_) { $("mapMessage").style.display="grid"; }
+        state.map=L.map("map",{zoomControl:false,preferCanvas:true}).setView([37.02,-3.76],7);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(state.map);
+        L.control.zoom().addTo(state.map);
+        state.map.whenReady(() => {
+          state.mapReady=true;
+          $("mapMessage").style.display="none";
+          drawRoutes(true);
+        });
+      } catch (_) {
+        $("mapMessage").textContent="No se pudo iniciar el mapa.";
+        $("mapMessage").style.display="grid";
+      }
     }
     function drawRoutes(fit) {
       if (!state.mapReady || !state.map) return;
-      state.routes.forEach((route,index) => {
-        const sourceId = "route-" + index;
-        const layerId = "route-line-" + index;
-        if (state.map.getLayer(layerId)) state.map.removeLayer(layerId);
-        if (state.map.getSource(sourceId)) state.map.removeSource(sourceId);
-        state.map.addSource(sourceId,{type:"geojson",data:{type:"Feature",properties:{},geometry:{type:"LineString",coordinates:route.geometry}}});
-        state.map.addLayer({id:layerId,type:"line",source:sourceId,layout:{"line-cap":"round","line-join":"round"},paint:{"line-color":COLORS[index] || COLORS[0],"line-width":index===state.selected?6:3,"line-opacity":index===state.selected?.95:.55}});
-      });
-      state.routes.forEach((_,index) => {
-        const id="route-line-"+index;
-        if (state.map.getLayer(id)) state.map.moveLayer(id);
+      state.routeLayers.forEach(layer=>layer.remove());
+      state.routeLayers=[];
+      const order=state.routes.map((_,index)=>index).sort((a,b)=>(a===state.selected?1:0)-(b===state.selected?1:0));
+      order.forEach(index => {
+        const route=state.routes[index];
+        if (!route.geometry || route.geometry.length<2) return;
+        const points=route.geometry.map(coord=>[coord[1],coord[0]]);
+        state.routeLayers.push(L.polyline(points,{color:routeColor(index),weight:index===state.selected?6:3,opacity:index===state.selected?.98:.62}).addTo(state.map));
       });
       addMarkers();
       if (fit) {
         const route = state.routes[state.selected];
         if (route && route.geometry.length) {
-          const bounds = route.geometry.reduce((box,coord) => box.extend(coord),new maplibregl.LngLatBounds(route.geometry[0],route.geometry[0]));
-          state.map.fitBounds(bounds,{padding:{top:55,bottom:245,left:55,right:55},duration:650,maxZoom:12});
+          const points=route.geometry.map(coord=>[coord[1],coord[0]]);
+          state.map.fitBounds(L.latLngBounds(points).pad(.12));
         }
       }
     }
@@ -553,9 +563,10 @@
       if (!route || !route.geometry.length) return;
       const points = [route.geometry[0],route.geometry[route.geometry.length-1]];
       points.forEach((point,index) => {
-        const element=document.createElement("div");
-        element.style.cssText="width:16px;height:16px;border:3px solid white;border-radius:50%;background:"+(index?"#f4a72c":"#0b8f5b")+";box-shadow:0 2px 8px rgba(0,0,0,.3)";
-        state.markers.push(new maplibregl.Marker({element}).setLngLat(point).addTo(state.map));
+        const markerColors=document.documentElement.dataset.theme==="dark"?["#47e5a5","#ffc04d"]:["#0b8f5b","#f4a72c"];
+        const html='<div class="route-map-marker" style="background:'+markerColors[index]+'"></div>';
+        const icon=L.divIcon({html,className:"",iconAnchor:[8,8]});
+        state.markers.push(L.marker([point[1],point[0]],{icon,zIndexOffset:900+index}).addTo(state.map));
       });
     }
 
@@ -595,6 +606,75 @@
       const national=Math.round(totals.national/total*100);
       return {mix:{motorway,national,secondary:Math.max(0,100-motorway-national)},tollRoad};
     }
+    async function requestRoadRoutes(coordinates,excludeTolls) {
+      const exclusion=excludeTolls?"&exclude=toll":"";
+      const response=await fetch("https://router.project-osrm.org/route/v1/driving/"+coordinates+"?alternatives=3&steps=true&overview=full&geometries=geojson"+exclusion);
+      if (!response.ok) throw new Error("El servicio de rutas no está disponible ahora mismo");
+      const data=await response.json();
+      if (data.code!=="Ok" || !data.routes || !data.routes.length) throw new Error(excludeTolls?"No se encontró una alternativa sin peaje":"No se encontró un recorrido por carretera");
+      return data.routes;
+    }
+    function decodeValhallaShape(encoded) {
+      let index=0,latitude=0,longitude=0;
+      const coordinates=[];
+      const nextValue=()=>{
+        let result=0,shift=0,byte;
+        do { byte=encoded.charCodeAt(index++)-63; result|=(byte&31)<<shift; shift+=5; } while(byte>=32 && index<=encoded.length);
+        return (result&1)?~(result>>1):(result>>1);
+      };
+      while(index<encoded.length){latitude+=nextValue();longitude+=nextValue();coordinates.push([longitude/1e6,latitude/1e6]);}
+      return coordinates;
+    }
+    async function requestValhallaNoToll(originCoords,destinationCoords) {
+      const payload={
+        locations:[{lat:originCoords[1],lon:originCoords[0]},{lat:destinationCoords[1],lon:destinationCoords[0]}],
+        costing:"auto",
+        costing_options:{auto:{use_tolls:0,toll_booth_penalty:43200}},
+        directions_options:{units:"kilometers",language:"es-ES"},
+        shape_format:"geojson"
+      };
+      const response=await fetch("https://valhalla1.openstreetmap.de/route?json="+encodeURIComponent(JSON.stringify(payload)));
+      if (!response.ok) throw new Error("No se pudo consultar la alternativa libre sin peaje");
+      const data=await response.json();
+      const trip=data.trip,legs=trip&&trip.legs||[];
+      if (!trip || !legs.length) throw new Error("No se encontró una alternativa sin peaje");
+      const maneuvers=legs.flatMap(leg=>leg.maneuvers||[]);
+      if (maneuvers.some(maneuver=>maneuver.toll===true)) throw new Error("La alternativa obtenida también contiene peaje");
+      const geometry=[];
+      legs.forEach((leg,index) => {
+        const shape=leg.shape&&Array.isArray(leg.shape.coordinates)?leg.shape.coordinates:typeof leg.shape==="string"?decodeValhallaShape(leg.shape):[];
+        geometry.push(...(index?shape.slice(1):shape));
+      });
+      if (geometry.length<2) throw new Error("La alternativa sin peaje no contiene geometría");
+      const steps=maneuvers.map(maneuver=>({name:(maneuver.street_names||[]).join(" ")||maneuver.instruction||"",ref:"",distance:(Number(maneuver.length)||0)*1000}));
+      const composition=routeComposition(steps);
+      const roads=[...new Set(maneuvers.flatMap(maneuver=>maneuver.street_names||[]).filter(Boolean))].slice(0,4);
+      return {name:"Alternativa sin peaje",via:roads.join(" · ")||"Red viaria sin peaje",distanceKm:Number(trip.summary&&trip.summary.length)||steps.reduce((sum,step)=>sum+step.distance,0)/1000,durationMin:Math.round((Number(trip.summary&&trip.summary.time)||0)/60),geometry,mix:composition.mix,tollRoad:null,fromNoTollSearch:true};
+    }
+    function prepareRoadRoute(item,fromNoTollSearch) {
+      const steps=(item.legs||[]).flatMap(leg=>leg.steps||[]);
+      const composition=routeComposition(steps);
+      if (fromNoTollSearch) composition.tollRoad=null;
+      const roads=[...new Set(steps.map(step=>step.ref||step.name).filter(Boolean))].slice(0,4);
+      return {name:"Ruta",via:roads.join(" · ")||"Red viaria principal",distanceKm:item.distance/1000,durationMin:Math.round(item.duration/60),geometry:item.geometry.coordinates,mix:composition.mix,tollRoad:composition.tollRoad,fromNoTollSearch};
+    }
+    function mergeRoadRoutes(regularRoutes,noTollRoutes) {
+      const merged=[];
+      [...regularRoutes,...noTollRoutes].forEach(route => {
+        const duplicate=merged.some(existing => existing.fromNoTollSearch===route.fromNoTollSearch && Math.abs(existing.distanceKm-route.distanceKm)<.15 && Math.abs(existing.durationMin-route.durationMin)<2);
+        if (!duplicate) merged.push(route);
+      });
+      merged.sort((a,b)=>a.durationMin-b.durationMin);
+      let visible=merged.slice(0,4);
+      const knownNoToll=merged.find(route=>!route.tollRoad);
+      if (knownNoToll && !visible.some(route=>!route.tollRoad)) visible=[...visible.slice(0,3),knownNoToll];
+      visible.forEach((route,index) => {
+        route.name=index===0
+          ?(route.tollRoad?"Más rápida con peaje":"Más rápida")
+          :route.fromNoTollSearch?"Alternativa sin peaje":"Alternativa "+(index+1)+(route.tollRoad?" con peaje":"");
+      });
+      return visible;
+    }
     async function calculateRoutes() {
       const originText=$("origin").value.trim();
       const destinationText=$("destination").value.trim();
@@ -608,17 +688,20 @@
         state.isApc=isApcMunicipality(originPlace.municipality)&&isApcMunicipality(destinationPlace.municipality);
         $("status").textContent="Calculando rutas por carretera…";
         const coordinates=originPlace.coords.join(",")+";"+destinationPlace.coords.join(",");
-        const exclusion=state.routePreference==="no-toll"?"&exclude=toll":"";
-        const response=await fetch("https://router.project-osrm.org/route/v1/driving/"+coordinates+"?alternatives=3&steps=true&overview=full&geometries=geojson"+exclusion);
-        if (!response.ok) throw new Error("El servicio de rutas no está disponible ahora mismo");
-        const data=await response.json();
-        if (data.code!=="Ok" || !data.routes || !data.routes.length) throw new Error("No se encontró un recorrido por carretera");
-        state.rawRoutes=data.routes.slice(0,3).map((item,index) => {
-          const steps=(item.legs||[]).flatMap(leg=>leg.steps||[]);
-          const composition=routeComposition(steps);
-          const roads=[...new Set(steps.map(step=>step.ref||step.name).filter(Boolean))].slice(0,3);
-          return {name:index===0?(composition.tollRoad?"Más rápida con peaje":"Más rápida"):"Alternativa "+(index+1),via:roads.join(" · ")||"Red viaria principal",distanceKm:item.distance/1000,durationMin:Math.round(item.duration/60),geometry:item.geometry.coordinates,mix:composition.mix,tollRoad:composition.tollRoad};
-        });
+        const regularPromise=requestRoadRoutes(coordinates,false).then(items=>items.slice(0,3).map(item=>prepareRoadRoute(item,false)));
+        const noTollPromise=(async()=>{
+          try {
+            const items=await requestRoadRoutes(coordinates,true);
+            return items.slice(0,2).map(item=>prepareRoadRoute(item,true));
+          } catch (_) {
+            return [await requestValhallaNoToll(originPlace.coords,destinationPlace.coords)];
+          }
+        })();
+        const results=await Promise.allSettled([regularPromise,noTollPromise]);
+        const regularRoutes=results[0].status==="fulfilled"?results[0].value:[];
+        const noTollRoutes=results[1].status==="fulfilled"?results[1].value:[];
+        if (!regularRoutes.length && !noTollRoutes.length) throw new Error("No se encontró un recorrido por carretera");
+        state.rawRoutes=mergeRoadRoutes(regularRoutes,noTollRoutes);
         state.routes=applyRoutePreference(state.rawRoutes);
         if (!state.routes.length) throw new Error("No se encontró una ruta que cumpla la preferencia seleccionada.");
         state.selected=0;
@@ -636,17 +719,42 @@
     }
     function useMyLocation() {
       if (!navigator.geolocation) { $("status").textContent="Este dispositivo no permite obtener la ubicación."; return; }
+      if (!window.isSecureContext && location.hostname!=="localhost") {
+        $("status").textContent="El GPS necesita abrir la aplicación mediante HTTPS.";
+        return;
+      }
+      if (state.gpsWatchId!==null) navigator.geolocation.clearWatch(state.gpsWatchId);
+      if (state.gpsTimer) clearTimeout(state.gpsTimer);
       $("status").textContent="Obteniendo tu ubicación…";
-      navigator.geolocation.getCurrentPosition(position => {
+      let finished=false;
+      const stopWatch=()=>{
+        if (state.gpsWatchId!==null) navigator.geolocation.clearWatch(state.gpsWatchId);
+        state.gpsWatchId=null;
+        if (state.gpsTimer) clearTimeout(state.gpsTimer);
+        state.gpsTimer=null;
+      };
+      state.gpsWatchId=navigator.geolocation.watchPosition(position => {
+        if (finished) return;
+        finished=true;
+        stopWatch();
         state.currentCoords=[position.coords.longitude,position.coords.latitude];
         $("origin").value="Mi ubicación actual";
         $("status").textContent="Ubicación preparada como punto de partida · precisión aproximada "+Math.round(position.coords.accuracy)+" m.";
-        if (state.mapReady) state.map.flyTo({center:state.currentCoords,zoom:13});
+        if (state.mapReady) state.map.setView([position.coords.latitude,position.coords.longitude],13);
       },error => {
+        if (finished) return;
+        finished=true;
+        stopWatch();
         $("status").textContent=location.protocol==="file:"
           ?"El GPS necesita abrir la página mediante HTTPS o localhost. En GitHub Pages funcionará al conceder permiso."
           :"No se pudo acceder a la ubicación. Revisa el permiso del navegador ("+error.message+").";
-      },{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+      },{enableHighAccuracy:true,timeout:15000,maximumAge:1000});
+      state.gpsTimer=setTimeout(()=>{
+        if (finished) return;
+        finished=true;
+        stopWatch();
+        $("status").textContent="El GPS está tardando demasiado. Comprueba que la ubicación precisa esté activada.";
+      },18000);
     }
 
     function selectService(type) {
@@ -685,6 +793,7 @@
       localStorage.setItem("orbe-taxi-theme",next);
       $("themeButton").textContent=next==="dark"?"☀":"☾";
       $("themeButton").setAttribute("aria-label",next==="dark"?"Activar modo claro":"Activar modo oscuro");
+      drawRoutes(false);
     });
     const savedTheme=localStorage.getItem("orbe-taxi-theme");
     const preferredDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;

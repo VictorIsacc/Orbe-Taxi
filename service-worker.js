@@ -1,14 +1,16 @@
 "use strict";
 
-const CACHE_NAME = "orbe-taxi-v2";
+const CACHE_NAME = "orbe-taxi-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icons/orbe-taxi-v2-180.png",
-  "./icons/orbe-taxi-v2-192.png",
-  "./icons/orbe-taxi-v2-512.png",
-  "./icons/orbe-taxi-v2-maskable-512.png"
+  "./leaflet-lite.css?v=2.1",
+  "./leaflet-lite.js?v=2.1",
+  "./orbe-taxi-v2-180.png",
+  "./orbe-taxi-v2-192.png",
+  "./orbe-taxi-v2-512.png",
+  "./orbe-taxi-v2-maskable-512.png"
 ];
 
 self.addEventListener("install",event => {
