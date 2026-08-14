@@ -34,7 +34,7 @@
     button,a { -webkit-tap-highlight-color:transparent }
     a { color:inherit }
     .app { width:min(1440px,100%); margin:auto; padding:18px }
-    .topbar { min-height:66px; padding:0 18px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--line); border-radius:18px 18px 0 0; box-shadow:var(--shadow) }
+    .topbar { min-height:66px; position:sticky; top:0; z-index:30; padding:0 18px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:color-mix(in srgb,var(--surface) 96%,transparent); border:1px solid var(--line); border-radius:18px 18px 0 0; box-shadow:var(--shadow); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px) }
     .brand { display:flex; align-items:center; gap:11px; text-decoration:none }
     .brand-mark { width:44px; height:44px; flex:0 0 auto; display:block; overflow:hidden; border-radius:13px; background:var(--green-soft); box-shadow:0 8px 20px rgba(11,143,91,.28) }
     .brand-mark img { width:100%; height:100%; display:block; object-fit:cover }
@@ -51,7 +51,7 @@
     .ui-zoom button { width:30px; height:32px; border:0; background:transparent; color:var(--text); cursor:pointer; font-size:10px; font-weight:850 }
     .ui-zoom button:hover { background:var(--green-soft); color:var(--green) }
     .ui-zoom span { min-width:38px; color:var(--muted); text-align:center; font-size:8px; font-weight:800 }
-    .tabbar { position:sticky; top:0; z-index:25; padding:9px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; border:1px solid var(--line); border-top:0; background:color-mix(in srgb,var(--surface) 96%,transparent); box-shadow:var(--shadow); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px) }
+    .tabbar { position:sticky; top:66px; z-index:29; padding:9px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; border:1px solid var(--line); border-top:0; background:color-mix(in srgb,var(--surface) 96%,transparent); box-shadow:var(--shadow); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px) }
     .tab-button { min-height:40px; padding:0 12px; border:1px solid transparent; border-radius:10px; background:var(--surface-2); color:var(--muted); cursor:pointer; font-size:10px; font-weight:800 }
     .tab-button[aria-selected="true"] { border-color:var(--green); background:var(--green-soft); color:var(--green) }
     .tab-content { border:1px solid var(--line); border-top:0; border-radius:0 0 18px 18px; background:var(--surface); box-shadow:var(--shadow); overflow:hidden }
@@ -150,6 +150,7 @@
     .route-price small { display:block; color:var(--muted); font-size:7px }
     .route-price strong { color:var(--green); font-size:15px }
     .empty-routes { padding:14px; border:1px solid color-mix(in srgb,var(--line) 78%,transparent); border-radius:12px; background:color-mix(in srgb,var(--surface) 94%,transparent); color:var(--muted); box-shadow:0 10px 30px rgba(24,45,35,.12); pointer-events:auto; text-align:center; font-size:9px; line-height:1.45 }
+    .route-filter-note { padding:9px 12px; border:1px solid color-mix(in srgb,var(--green) 40%,var(--line)); border-radius:10px; background:color-mix(in srgb,var(--green-soft) 92%,transparent); color:var(--green); box-shadow:0 8px 22px rgba(24,45,35,.1); pointer-events:auto; text-align:center; font-size:8px; font-weight:750; line-height:1.4 }
     .details { margin-top:16px; display:grid; grid-template-columns:1.2fr .9fr 1fr; gap:12px }
     .detail-card { min-height:164px; padding:17px; border:1px solid var(--line); border-radius:15px; background:var(--surface); box-shadow:0 8px 25px rgba(26,51,39,.07) }
     .detail-heading { display:flex; flex-direction:column }
@@ -161,6 +162,7 @@
     .total strong { font-size:28px; letter-spacing:-1px }
     .breakdown { margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:8px }
     .breakdown > span { padding:8px; display:flex; flex-direction:column; border-radius:9px; background:var(--surface-2) }
+    .breakdown > span[hidden] { display:none!important }
     .breakdown small { color:var(--muted); font-size:7px; line-height:1.35 }
     .breakdown b { margin-top:3px; font-size:10px }
     .road-bar { height:9px; margin:22px 0 14px; display:flex; overflow:hidden; border-radius:99px; background:var(--line) }
@@ -367,7 +369,7 @@
           <span><small id="waitLabel">Espera prevista (0 min)</small><b id="waitPrice">0,00 €</b></span>
           <span><small id="minimumLabel">Ajuste hasta carrera mínima</small><b id="minimumPrice">0,00 €</b></span>
           <span><small>Suplementos aplicables</small><b id="supplementPrice">0,00 €</b></span>
-          <span><small id="tollLabel">Peaje de la ruta</small><b id="tollPrice">0,00 €</b></span>
+          <span id="tollBreakdownRow"><small id="tollLabel">Peaje de la ruta</small><b id="tollPrice">0,00 €</b></span>
         </div>
       </article>
 
@@ -408,11 +410,13 @@
             <li>Activa los peajes solo si deseas comparar también esas alternativas. Si conoces un importe distinto, puedes introducirlo manualmente.</li>
             <li>Pulsa «Calcular rutas y precio». La aplicación abrirá la pestaña de mapa con las alternativas disponibles.</li>
             <li>Selecciona una ruta para consultar su distancia, duración, composición de vías y estimación económica.</li>
+            <li>Para evitar alternativas poco útiles, se omiten las que difieren menos de 1 € de otra más rápida y las que superan en más de 7 € a la opción de menor precio.</li>
           </ol>
 
           <h3>Cómo se aplican las tarifas</h3>
           <ul>
             <li>Si origen y destino están dentro del APC de Granada, se aplican las tarifas urbanas autorizadas.</li>
+            <li>En los recorridos urbanos se intenta obtener una ruta específica para taxi, incluida la circulación por vías cuyos datos cartográficos indiquen acceso autorizado a taxis. Si ese perfil libre no está disponible, la aplicación lo advertirá y conservará las rutas generales.</li>
             <li>En urbano, los tramos estimados por debajo de 30 km/h se valoran por tiempo y los tramos a 30 km/h o más por distancia. La carrera mínima actúa siempre como importe mínimo antes de suplementos.</li>
             <li>Si el recorrido sale del APC, se aplican las tarifas interurbanas 7 u 8 según fecha y hora, con circuito cerrado por defecto salvo acuerdo expreso.</li>
             <li>Los servicios contratados previamente a precio cerrado muestran la referencia de Tarifa 6 y se rigen por el importe comunicado.</li>
@@ -428,6 +432,7 @@
             <a href="https://www.juntadeandalucia.es/boja/2026/49/46" target="_blank" rel="noreferrer">Tarifas interurbanas ↗</a>
             <a href="https://www.juntadeandalucia.es/boja/2022/68/40" target="_blank" rel="noreferrer">Régimen tarifario ↗</a>
             <a href="https://www.juntadeandalucia.es/boja/2024/26/33" target="_blank" rel="noreferrer">Municipios APC ↗</a>
+            <a href="https://www.granada.org/inet/wordenanz.nsf/d1ba605cd85e1cc9c1256e280064a252/dd6619f422b09a77c1257c9a00298415!opendocument" target="_blank" rel="noreferrer">Accesos restringidos de Granada ↗</a>
           </div>
         </div>
       </section>
@@ -453,8 +458,10 @@
     const COLORS = ["#0b8f5b","#f4a72c","#6c74de"];
     const DARK_COLORS = ["#47e5a5","#ffc04d","#aab2ff"];
     const APC_SUPPLEMENT = .53;
+    const MAX_ROUTE_PRICE_DIFFERENCE = 7;
+    const MIN_ROUTE_PRICE_DIFFERENCE = 1;
     const $ = id => document.getElementById(id);
-    const state = {rawRoutes:[],routes:[],selected:0,isApc:false,serviceType:"immediate",routePreference:"no-toll",manualTolls:{},luggage:0,currentCoords:null,currentAccuracy:null,map:null,mapReady:false,markers:[],routeLayers:[],locationMarker:null,accuracyCircle:null,gpsWatchId:null,gpsTimer:null,gpsTrackingActive:false,calculationId:0};
+    const state = {rawRoutes:[],routes:[],selected:0,isApc:false,serviceType:"immediate",routePreference:"no-toll",manualTolls:{},luggage:0,currentCoords:null,currentAccuracy:null,map:null,mapReady:false,markers:[],routeLayers:[],locationMarker:null,accuracyCircle:null,gpsWatchId:null,gpsTimer:null,gpsTrackingActive:false,calculationId:0,taxiRouteAvailable:false};
     const euros = value => new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(value || 0);
     const normalize = value => (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
     const isApcMunicipality = value => APC.has(normalize(value));
@@ -480,7 +487,7 @@
         const currentTime=isoLocalTime(now);
         if ($("serviceTime").value!==currentTime) { $("serviceTime").value=currentTime; changed=true; }
       }
-      if (changed && updatePrices) renderRoutes();
+      if (changed && updatePrices) refreshPrices();
     }
     syncCurrentServiceMoment(false);
     setInterval(()=>syncCurrentServiceMoment(true),1000);
@@ -609,6 +616,7 @@
       $("supplementPrice").textContent = euros(q.supplements);
       $("tollLabel").textContent = q.toll.label;
       $("tollPrice").textContent = euros(q.toll.amount);
+      $("tollBreakdownRow").hidden=!state.routes.some(item=>item.tollRoad) && !q.toll.manual && q.toll.amount===0;
       const manual=state.manualTolls[routeKey(route)];
       $("manualTollPrice").value=manual===undefined?"":String(manual);
       $("motorwayBar").style.width = route.mix.motorway + "%";
@@ -628,21 +636,54 @@
         $("detailsSection").hidden=true;
         return;
       }
+      const hasTollAlternative=state.routes.some(route=>route.tollRoad);
       state.routes.forEach((route,index) => {
         const q = quoteFor(route);
         const button = document.createElement("button");
         button.type = "button";
         button.className = "route-card" + (index === state.selected ? " selected" : "");
         const tollText=q.toll.manual ? "Manual · "+euros(q.toll.amount)+" total" : route.tollRoad==="AP-46" ? "AP-46 · "+euros(q.toll.perPass)+"/paso" : route.tollRoad ? route.tollRoad+" · verificar" : "No";
-        button.innerHTML = '<span class="route-number">' + (index + 1) + '</span><span class="route-info"><span class="route-title"><strong>' + escapeHtml(route.name) + '</strong>' + (index === 0 ? '<em>RECOMENDADA</em>' : '') + '</span><span class="via">' + escapeHtml(route.via) + '</span><span class="metrics"><b>' + route.distanceKm.toFixed(1).replace(".",",") + ' km</b> · ' + route.durationMin + ' min · Peaje: ' + escapeHtml(tollText) + '</span></span><span class="route-price"><small>Total estimado</small><strong>' + euros(q.total) + '</strong></span>';
+        const tollMetric=hasTollAlternative?' · Peaje: '+escapeHtml(tollText):'';
+        button.innerHTML = '<span class="route-number">' + (index + 1) + '</span><span class="route-info"><span class="route-title"><strong>' + escapeHtml(route.name) + '</strong>' + (index === 0 ? '<em>RECOMENDADA</em>' : '') + (route.taxiProfile ? '<em>PERFIL TAXI</em>' : '') + '</span><span class="via">' + escapeHtml(route.via) + '</span><span class="metrics"><b>' + route.distanceKm.toFixed(1).replace(".",",") + ' km</b> · ' + route.durationMin + ' min' + tollMetric + '</span></span><span class="route-price"><small>Total estimado</small><strong>' + euros(q.total) + '</strong></span>';
         button.addEventListener("click",() => { state.selected=index; renderRoutes(); drawRoutes(true); });
         $("routeList").appendChild(button);
       });
+      if (state.routes.length===1) {
+        const note=document.createElement("div");
+        note.className="route-filter-note";
+        note.textContent=state.rawRoutes.length>1
+          ?"Esta es la opción más adecuada entre las alternativas comparables; se han omitido rutas con precio casi idéntico o más de 7 € de diferencia."
+          :"Esta es la ruta más adecuada encontrada para los parámetros indicados.";
+        $("routeList").appendChild(note);
+      }
       renderSummary();
     }
     function applyRoutePreference(routes) {
-      if (state.routePreference==="no-toll") return routes.filter(route=>!route.tollRoad);
-      return routes;
+      const preferred=state.routePreference==="no-toll"?routes.filter(route=>!route.tollRoad):routes.slice();
+      if (!preferred.length) return [];
+      const priced=preferred.map(route=>({route,price:quoteFor(route).total}));
+      const cheapest=Math.min(...priced.map(item=>item.price));
+      const withinMargin=priced.filter(item=>item.price<=cheapest+MAX_ROUTE_PRICE_DIFFERENCE+.005);
+      const distinct=[];
+      withinMargin.forEach(item=>{
+        const similarIndex=distinct.findIndex(saved=>Math.abs(saved.price-item.price)<MIN_ROUTE_PRICE_DIFFERENCE);
+        if (similarIndex<0) distinct.push(item);
+        else {
+          const saved=distinct[similarIndex];
+          const preferTaxi=state.isApc && item.route.taxiProfile && !saved.route.taxiProfile;
+          const sameProfile=Boolean(item.route.taxiProfile)===Boolean(saved.route.taxiProfile);
+          if (preferTaxi || (sameProfile && item.route.durationMin<saved.route.durationMin)) distinct[similarIndex]=item;
+        }
+      });
+      distinct.sort((a,b)=>(state.isApc?Number(Boolean(b.route.taxiProfile))-Number(Boolean(a.route.taxiProfile)):0) || a.route.durationMin-b.route.durationMin);
+      const visible=distinct.map(item=>item.route);
+      const hasTollAlternative=visible.some(route=>route.tollRoad);
+      visible.forEach((route,index)=>{
+        const tollDescription=hasTollAlternative?(route.tollRoad?" con peaje":" sin peaje"):"";
+        const baseName=index===0?(state.isApc&&route.taxiProfile?"Recomendada para taxi":"Más rápida"):"Alternativa "+(index+1);
+        route.name=baseName+tollDescription;
+      });
+      return visible;
     }
     function setIncludeTolls(include) {
       state.routePreference=include?"all":"no-toll";
@@ -658,7 +699,7 @@
       if (state.routes.length) {
         renderRoutes();
         drawRoutes(true);
-        $("status").textContent=include?"Las rutas con peaje se mostrarán junto a las demás alternativas.":"Se evitarán las rutas con peaje.";
+        $("status").textContent=include?"Se compararán las rutas con peaje y se mostrarán solo las que cumplan el margen económico.":"Se evitarán las rutas con peaje.";
       } else {
         renderRoutes();
         drawRoutes(false);
@@ -880,6 +921,33 @@
       const meterSegments=steps.map(step=>({distanceKm:step.distance/1000,durationMin:step.duration/60})).filter(segment=>segment.durationMin>0);
       return {name:"Alternativa sin peaje",via:roads.join(" · ")||"Red viaria sin peaje",distanceKm:Number(trip.summary&&trip.summary.length)||steps.reduce((sum,step)=>sum+step.distance,0)/1000,durationMin:Math.round((Number(trip.summary&&trip.summary.time)||0)/60),geometry,mix:composition.mix,tollRoad:null,fromNoTollSearch:true,meterSegments};
     }
+    async function requestValhallaTaxiRoute(originCoords,destinationCoords) {
+      const payload={
+        locations:[{lat:originCoords[1],lon:originCoords[0]},{lat:destinationCoords[1],lon:destinationCoords[0]}],
+        costing:"taxi",
+        costing_options:{taxi:{shortest:true,disable_hierarchy_pruning:true}},
+        directions_options:{units:"kilometers",language:"es-ES"},
+        shape_format:"geojson"
+      };
+      const response=await fetch("https://valhalla1.openstreetmap.de/route?json="+encodeURIComponent(JSON.stringify(payload)));
+      if (!response.ok) throw new Error("El perfil de rutas para taxi no está disponible");
+      const data=await response.json();
+      const trip=data.trip,legs=trip&&trip.legs||[];
+      if (!trip || !legs.length) throw new Error("No se encontró una ruta urbana específica para taxi");
+      const maneuvers=legs.flatMap(leg=>leg.maneuvers||[]);
+      const geometry=[];
+      legs.forEach((leg,index)=>{
+        const shape=leg.shape&&Array.isArray(leg.shape.coordinates)?leg.shape.coordinates:typeof leg.shape==="string"?decodeValhallaShape(leg.shape):[];
+        geometry.push(...(index?shape.slice(1):shape));
+      });
+      if (geometry.length<2) throw new Error("La ruta para taxi no contiene geometría");
+      const steps=maneuvers.map(maneuver=>({name:(maneuver.street_names||[]).join(" ")||maneuver.instruction||"",ref:"",distance:(Number(maneuver.length)||0)*1000,duration:Number(maneuver.time)||0}));
+      const composition=routeComposition(steps);
+      if (!composition.tollRoad && maneuvers.some(maneuver=>maneuver.toll===true)) composition.tollRoad="Peaje";
+      const roads=[...new Set(maneuvers.flatMap(maneuver=>maneuver.street_names||[]).filter(Boolean))].slice(0,4);
+      const meterSegments=steps.map(step=>({distanceKm:step.distance/1000,durationMin:step.duration/60})).filter(segment=>segment.durationMin>0);
+      return {name:"Ruta taxi más corta",via:roads.join(" · ")||"Red urbana con accesos para taxi",distanceKm:Number(trip.summary&&trip.summary.length)||steps.reduce((sum,step)=>sum+step.distance,0)/1000,durationMin:Math.round((Number(trip.summary&&trip.summary.time)||0)/60),geometry,mix:composition.mix,tollRoad:composition.tollRoad,fromNoTollSearch:false,meterSegments,taxiProfile:true};
+    }
     function prepareRoadRoute(item,fromNoTollSearch) {
       const steps=(item.legs||[]).flatMap(leg=>leg.steps||[]);
       const composition=routeComposition(steps);
@@ -896,8 +964,14 @@
       });
       merged.sort((a,b)=>a.durationMin-b.durationMin);
       let visible=merged.slice(0,4);
+      const knownTaxi=merged.find(route=>route.taxiProfile);
+      if (knownTaxi && !visible.some(route=>route.taxiProfile)) visible=[...visible.slice(0,3),knownTaxi];
       const knownNoToll=merged.find(route=>!route.tollRoad);
-      if (knownNoToll && !visible.some(route=>!route.tollRoad)) visible=[...visible.slice(0,3),knownNoToll];
+      if (knownNoToll && !visible.some(route=>!route.tollRoad)) {
+        let replaceIndex=Math.max(0,visible.length-1);
+        if (visible[replaceIndex]&&visible[replaceIndex].taxiProfile&&replaceIndex>0) replaceIndex--;
+        visible.splice(replaceIndex,1,knownNoToll);
+      }
       visible.forEach((route,index) => {
         route.name=index===0
           ?(route.tollRoad?"Más rápida con peaje":"Más rápida")
@@ -929,12 +1003,15 @@
             return [await requestValhallaNoToll(originPlace.coords,destinationPlace.coords)];
           }
         })();
-        const results=await Promise.allSettled([regularPromise,noTollPromise]);
+        const taxiPromise=state.isApc?requestValhallaTaxiRoute(originPlace.coords,destinationPlace.coords).then(route=>[route]).catch(()=>[]):Promise.resolve([]);
+        const results=await Promise.allSettled([regularPromise,noTollPromise,taxiPromise]);
         if (calculationId!==state.calculationId) return;
         const regularRoutes=results[0].status==="fulfilled"?results[0].value:[];
         const noTollRoutes=results[1].status==="fulfilled"?results[1].value:[];
-        if (!regularRoutes.length && !noTollRoutes.length) throw new Error("No se encontró un recorrido por carretera");
-        state.rawRoutes=mergeRoadRoutes(regularRoutes,noTollRoutes);
+        const taxiRoutes=results[2].status==="fulfilled"?results[2].value:[];
+        state.taxiRouteAvailable=taxiRoutes.length>0;
+        if (!regularRoutes.length && !noTollRoutes.length && !taxiRoutes.length) throw new Error("No se encontró un recorrido por carretera");
+        state.rawRoutes=mergeRoadRoutes([...taxiRoutes,...regularRoutes],noTollRoutes);
         state.routes=applyRoutePreference(state.rawRoutes);
         if (!state.routes.length) throw new Error("No se encontró una ruta que cumpla la preferencia seleccionada.");
         state.selected=0;
@@ -942,7 +1019,7 @@
         activateTab("map");
         setTimeout(()=>drawRoutes(true),80);
         $("status").textContent=state.isApc
-          ?"Trayecto dentro del APC ("+originPlace.municipality+" → "+destinationPlace.municipality+") · tarifa urbana."
+          ?"Trayecto dentro del APC ("+originPlace.municipality+" → "+destinationPlace.municipality+") · tarifa urbana · "+(state.taxiRouteAvailable?"perfil taxi con accesos autorizados.":"perfil general; accesos exclusivos para taxi no confirmados.")
           :state.routes.length+" "+(state.routes.length===1?"ruta encontrada":"rutas encontradas")+" · tarifa interurbana y circuito cerrado.";
       } catch (error) {
         if (calculationId===state.calculationId) $("status").textContent=(error && error.message) || "No se pudo calcular el recorrido.";
@@ -1003,9 +1080,19 @@
       state.serviceType=type;
       $("immediateButton").classList.toggle("active",type==="immediate");
       $("pickupButton").classList.toggle("active",type==="pickup");
-      renderRoutes();
+      refreshPrices();
     }
-    function refreshPrices() { renderRoutes(); }
+    function refreshPrices() {
+      if (state.rawRoutes.length) {
+        const selectedRoute=state.routes[state.selected];
+        const selectedKey=selectedRoute?routeKey(selectedRoute):null;
+        state.routes=applyRoutePreference(state.rawRoutes);
+        const preservedIndex=selectedKey?state.routes.findIndex(route=>routeKey(route)===selectedKey):-1;
+        state.selected=preservedIndex>=0?preservedIndex:0;
+      }
+      renderRoutes();
+      drawRoutes(false);
+    }
 
     function clearSimulation() {
       state.calculationId++;
@@ -1018,6 +1105,7 @@
       state.isApc=false;
       state.serviceType="immediate";
       state.routePreference="no-toll";
+      state.taxiRouteAvailable=false;
       state.manualTolls={};
       state.luggage=0;
       $("origin").value=keepGps && state.currentCoords ? "Mi ubicación actual" : "";
@@ -1035,7 +1123,7 @@
       serviceTimeManuallyEdited=false;
       syncCurrentServiceMoment(false);
       renderOptions();
-      renderRoutes();
+      refreshPrices();
       drawRoutes(false);
       if (state.map) {
         if (keepGps && state.currentCoords) state.map.setView([state.currentCoords[1],state.currentCoords[0]],15);
@@ -1100,7 +1188,7 @@
       const value=$("manualTollPrice").value.trim();
       if (value==="") delete state.manualTolls[routeKey(route)];
       else state.manualTolls[routeKey(route)]=Math.max(0,Number(value)||0);
-      renderRoutes();
+      refreshPrices();
     });
     $("luggageMinus").addEventListener("click",()=>{ state.luggage=Math.max(0,state.luggage-1); $("luggageCount").textContent=state.luggage; refreshPrices(); });
     $("luggagePlus").addEventListener("click",()=>{ state.luggage=Math.min(5,state.luggage+1); $("luggageCount").textContent=state.luggage; refreshPrices(); });
