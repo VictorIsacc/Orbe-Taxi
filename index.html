@@ -20,7 +20,7 @@
       color-scheme: light;
       --page:#eef3f0; --surface:#fff; --surface-2:#f5f8f6; --text:#17221d; --muted:#68766f;
       --line:#dfe7e2; --green:#0b8f5b; --green-2:#087a4e; --green-soft:#e4f5ed; --amber:#f4a72c;
-      --indigo:#6c74de; --danger:#d55454; --shadow:0 18px 45px rgba(29,52,41,.12);
+      --indigo:#6c74de; --danger:#d55454; --shadow:0 18px 45px rgba(29,52,41,.12); --ui-zoom:1;
     }
     html[data-theme="dark"] {
       color-scheme: dark;
@@ -29,7 +29,7 @@
     }
     * { box-sizing:border-box }
     html { scroll-behavior:smooth }
-    body { margin:0; min-width:320px; min-height:100vh; background:radial-gradient(circle at 10% -10%,var(--green-soft),transparent 34%),var(--page); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif }
+    body { margin:0; min-width:320px; min-height:100vh; zoom:var(--ui-zoom); background:radial-gradient(circle at 10% -10%,var(--green-soft),transparent 34%),var(--page); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif }
     button,input { font:inherit }
     button,a { -webkit-tap-highlight-color:transparent }
     a { color:inherit }
@@ -46,8 +46,17 @@
     .icon-button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:11px; background:var(--surface-2); color:var(--text); cursor:pointer; font-size:17px }
     .install-button { min-height:34px; padding:0 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); color:var(--green); cursor:pointer; font-size:9px; font-weight:800 }
     .install-button[hidden] { display:none }
-    .workspace { display:grid; grid-template-columns:380px minmax(0,1fr); min-height:730px; border:1px solid var(--line); border-top:0; background:var(--surface); border-radius:0 0 18px 18px; overflow:hidden; box-shadow:var(--shadow) }
-    .controls { padding:24px; overflow:auto; border-right:1px solid var(--line) }
+    .ui-zoom { height:34px; display:flex; align-items:center; overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--surface-2) }
+    .ui-zoom button { width:30px; height:32px; border:0; background:transparent; color:var(--text); cursor:pointer; font-size:10px; font-weight:850 }
+    .ui-zoom button:hover { background:var(--green-soft); color:var(--green) }
+    .ui-zoom span { min-width:38px; color:var(--muted); text-align:center; font-size:8px; font-weight:800 }
+    .tabbar { padding:9px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; border:1px solid var(--line); border-top:0; background:var(--surface); box-shadow:var(--shadow) }
+    .tab-button { min-height:40px; padding:0 12px; border:1px solid transparent; border-radius:10px; background:var(--surface-2); color:var(--muted); cursor:pointer; font-size:10px; font-weight:800 }
+    .tab-button[aria-selected="true"] { border-color:var(--green); background:var(--green-soft); color:var(--green) }
+    .tab-content { border:1px solid var(--line); border-top:0; border-radius:0 0 18px 18px; background:var(--surface); box-shadow:var(--shadow); overflow:hidden }
+    .tab-panel[hidden],.details[hidden],.tariff[hidden] { display:none!important }
+    .simulation-panel { min-height:680px; padding:26px; background:linear-gradient(145deg,var(--surface),var(--surface-2)) }
+    .controls { width:min(680px,100%); margin:auto; padding:26px; border:1px solid var(--line); border-radius:16px; background:var(--surface); box-shadow:0 12px 32px rgba(26,51,39,.08) }
     .eyebrow { display:flex; align-items:center; gap:6px; color:var(--green); font-size:9px; font-weight:850; letter-spacing:1px }
     h1 { margin:8px 0 5px; font-size:27px; line-height:1.08; letter-spacing:-1px }
     .intro { margin:0 0 20px; color:var(--muted); font-size:11px; line-height:1.5 }
@@ -114,7 +123,8 @@
     .tariff-copy strong { margin:2px 0; font-size:9.5px }
     .tariff-copy small { color:var(--muted); font-size:8px }
     .source-button { width:30px; height:30px; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; text-decoration:none; color:var(--green) }
-    .map-panel { position:relative; min-height:730px; background:#dce8e1 }
+    .map-routes-panel { padding:14px; background:var(--surface) }
+    .map-panel { position:relative; min-height:690px; overflow:hidden; border:1px solid var(--line); border-radius:15px; background:#dce8e1 }
     #map { position:absolute; inset:0 }
     .map-message { position:absolute; inset:0; z-index:2; display:none; place-items:center; padding:30px; text-align:center; background:var(--surface-2); color:var(--muted); font-size:12px }
     .route-list { position:absolute; z-index:5; left:18px; right:18px; bottom:18px; display:grid; gap:7px; pointer-events:none }
@@ -129,6 +139,7 @@
     .route-price { text-align:right }
     .route-price small { display:block; color:var(--muted); font-size:7px }
     .route-price strong { color:var(--green); font-size:15px }
+    .empty-routes { padding:14px; border:1px solid color-mix(in srgb,var(--line) 78%,transparent); border-radius:12px; background:color-mix(in srgb,var(--surface) 94%,transparent); color:var(--muted); box-shadow:0 10px 30px rgba(24,45,35,.12); pointer-events:auto; text-align:center; font-size:9px; line-height:1.45 }
     .details { margin-top:16px; display:grid; grid-template-columns:1.2fr .9fr 1fr; gap:12px }
     .detail-card { min-height:164px; padding:17px; border:1px solid var(--line); border-radius:15px; background:var(--surface); box-shadow:0 8px 25px rgba(26,51,39,.07) }
     .detail-heading { display:flex; flex-direction:column }
@@ -154,6 +165,16 @@
     .legal p { margin:5px 0 10px; color:var(--muted); font-size:8px; line-height:1.5 }
     .source-links { display:flex; flex-wrap:wrap; gap:6px }
     .source-links a { padding:5px 7px; border:1px solid var(--line); border-radius:7px; color:var(--green); text-decoration:none; font-size:7px; font-weight:750 }
+    .instructions-panel { min-height:680px; padding:28px; background:linear-gradient(145deg,var(--surface),var(--surface-2)) }
+    .instructions-card { width:min(900px,100%); margin:auto; padding:28px; border:1px solid var(--line); border-radius:17px; background:var(--surface); box-shadow:0 12px 34px rgba(26,51,39,.08) }
+    .instructions-card h2 { margin:7px 0 8px; font-size:25px; letter-spacing:-.7px }
+    .instructions-card h3 { margin:22px 0 7px; font-size:13px }
+    .instructions-card p,.instructions-card li { color:var(--muted); font-size:10px; line-height:1.65 }
+    .instructions-card ol,.instructions-card ul { margin:8px 0; padding-left:21px }
+    .instructions-note { margin-top:20px; padding:14px; border-left:4px solid var(--green); border-radius:10px; background:var(--green-soft) }
+    .instructions-note strong { display:block; margin-bottom:4px; font-size:11px }
+    .instructions-links { margin-top:16px; display:flex; flex-wrap:wrap; gap:7px }
+    .instructions-links a { padding:7px 9px; border:1px solid var(--line); border-radius:8px; color:var(--green); text-decoration:none; font-size:8px; font-weight:800 }
     .footer { padding:14px 4px 4px; color:var(--muted); text-align:center; font-size:8px }
     .route-map-marker { width:16px; height:16px; border:3px solid white; border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,.3) }
     .gps-map-marker { width:28px; height:28px; position:relative; display:grid; place-items:center; border:3px solid #fff; border-radius:50%; background:#1677ff; box-shadow:0 3px 12px rgba(0,55,140,.42) }
@@ -161,16 +182,17 @@
     .gps-map-marker::after { content:""; position:absolute; inset:-7px; border:2px solid rgba(22,119,255,.42); border-radius:50%; animation:gpsPulse 2s ease-out infinite }
     @keyframes gpsPulse { 0% { transform:scale(.7); opacity:.9 } 80%,100% { transform:scale(1.35); opacity:0 } }
     @media (max-width:980px) {
-      .workspace { grid-template-columns:340px minmax(0,1fr) }
       .details { grid-template-columns:1fr 1fr }.legal { grid-column:1/-1 }
     }
     @media (max-width:760px) {
       .app { padding:0 }
       .topbar { position:sticky; top:0; z-index:20; min-height:61px; border-radius:0; border-width:0 0 1px }
       .pill { display:none }
-      .workspace { display:block; border:0; border-radius:0 }
-      .controls { padding:20px 16px; border:0 }
-      .map-panel { min-height:650px; border-top:1px solid var(--line) }
+      .tabbar,.tab-content { border-left:0; border-right:0; border-radius:0 }
+      .simulation-panel,.instructions-panel { min-height:0; padding:16px }
+      .controls,.instructions-card { padding:20px 16px }
+      .map-routes-panel { padding:0 }
+      .map-panel { min-height:650px; border:0; border-radius:0 }
       .route-list { left:10px; right:10px; bottom:10px }
       .details { margin:12px; grid-template-columns:1fr }
       .legal { grid-column:auto }
@@ -178,6 +200,9 @@
     }
     @media (max-width:430px) {
       .brand-copy small { max-width:190px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis }
+      .ui-zoom span { display:none }
+      .pill { display:none }
+      .tab-button { padding:0 5px; font-size:8.5px }
       .route-card { grid-template-columns:23px 1fr auto; padding:8px }
       .route-price strong { font-size:12px }
       .metrics { font-size:6.8px }
@@ -194,12 +219,24 @@
       </a>
       <div class="top-actions">
         <span class="pill">✓ Consulta orientativa</span>
+        <div class="ui-zoom" role="group" aria-label="Tamaño de la interfaz">
+          <button id="uiZoomOut" type="button" aria-label="Reducir interfaz">A−</button>
+          <span id="uiZoomValue">100%</span>
+          <button id="uiZoomIn" type="button" aria-label="Ampliar interfaz">A+</button>
+        </div>
         <button class="install-button" id="installButton" type="button" hidden>⇩ Instalar</button>
         <button class="icon-button" id="themeButton" type="button" aria-label="Activar modo oscuro">☾</button>
       </div>
     </header>
 
-    <main class="workspace" id="simulador">
+    <nav class="tabbar" role="tablist" aria-label="Secciones de Orbe Taxi">
+      <button class="tab-button" id="simulationTab" type="button" role="tab" aria-selected="true" aria-controls="simulationPanel" data-tab="simulation">Simulación</button>
+      <button class="tab-button" id="mapTab" type="button" role="tab" aria-selected="false" aria-controls="mapRoutesPanel" data-tab="map">Mapa y rutas</button>
+      <button class="tab-button" id="instructionsTab" type="button" role="tab" aria-selected="false" aria-controls="instructionsPanel" data-tab="instructions">Instrucciones</button>
+    </nav>
+
+    <main class="tab-content" id="simulador">
+      <section class="tab-panel simulation-panel" id="simulationPanel" role="tabpanel" aria-labelledby="simulationTab">
       <aside class="controls">
         <span class="eyebrow">⌁ GRANADA · URBANO E INTERURBANO</span>
         <h1>Consulta el precio de un trayecto</h1>
@@ -209,14 +246,14 @@
           <label class="field-label" for="origin">Origen</label>
           <div class="input-shell">
             <span class="dot"></span>
-            <input id="origin" autocomplete="street-address" value="Granada" placeholder="Dirección o población de origen">
+            <input id="origin" autocomplete="street-address" placeholder="Dirección o población de origen">
             <button id="gpsButton" type="button" title="Usar mi ubicación" aria-label="Usar mi ubicación" aria-pressed="false">⌖</button>
           </div>
           <div class="connector"></div>
           <label class="field-label" for="destination">Destino</label>
           <div class="input-shell">
             <span class="dot destination"></span>
-            <input id="destination" autocomplete="street-address" value="Aeropuerto de Málaga-Costa del Sol" placeholder="Dirección o población de destino">
+            <input id="destination" autocomplete="street-address" placeholder="Dirección o población de destino">
             <span aria-hidden="true">⌖</span>
           </div>
           <button class="swap" id="swapButton" type="button">⇅ Intercambiar origen y destino</button>
@@ -230,7 +267,7 @@
         <fieldset>
           <legend>Preferencia de ruta</legend>
           <label class="option">
-            <input class="switch-input" id="includeTolls" type="checkbox" checked>
+            <input class="switch-input" id="includeTolls" type="checkbox">
             <span class="switch"></span>
             <span class="option-copy"><strong>Incluir rutas con peaje</strong><small>Se mostrarán junto a las alternativas sin peaje para poder compararlas</small></span>
           </label>
@@ -280,23 +317,24 @@
         </div>
 
         <button class="calculate" id="calculateButton" type="button">⌕ Calcular rutas y precio →</button>
-        <p class="status" id="status" role="status">Ejemplo preparado · pulsa «Calcular» para consultar el recorrido real.</p>
+        <p class="status" id="status" role="status">Introduce el origen y el destino, o usa tu ubicación actual.</p>
 
-        <section class="tariff" aria-label="Tarifa aplicada">
+        <section class="tariff" id="tariffCard" aria-label="Tarifa aplicada" hidden>
           <div class="tariff-badge"><span>TARIFA</span><strong id="tariffNumber">7</strong></div>
           <div class="tariff-copy"><span id="tariffScope">Servicio interurbano</span><strong id="tariffLabel">Laborable diurna</strong><small id="tariffRates">0,71 €/km · espera 17,57 €/h</small></div>
           <a class="source-button" id="tariffSource" href="https://www.juntadeandalucia.es/boja/2026/49/46" target="_blank" rel="noreferrer" title="Fuente oficial">↗</a>
         </section>
       </aside>
+      </section>
 
+      <section class="tab-panel map-routes-panel" id="mapRoutesPanel" role="tabpanel" aria-labelledby="mapTab" hidden>
       <section class="map-panel" aria-label="Mapa y alternativas">
         <div id="map"></div>
         <div class="map-message" id="mapMessage">No se pudo cargar el mapa. Comprueba la conexión a Internet.</div>
         <div class="route-list" id="routeList"></div>
       </section>
-    </main>
 
-    <section class="details">
+    <section class="details" id="detailsSection" hidden>
       <article class="detail-card">
         <div class="price-head">
           <div class="detail-heading"><span>ESTIMACIÓN SELECCIONADA</span><strong id="selectedRouteName">Más rápida</strong></div>
@@ -306,6 +344,7 @@
           <span><small id="baseLabel">Sin bajada de bandera (≥ 12 km)</small><b id="basePrice">0,00 €</b></span>
           <span><small id="distanceLabel">126,4 km × 2 = 252,8 km × 0,71 €</small><b id="distancePrice">179,49 €</b></span>
           <span><small id="waitLabel">Espera prevista (0 min)</small><b id="waitPrice">0,00 €</b></span>
+          <span><small id="minimumLabel">Ajuste hasta carrera mínima</small><b id="minimumPrice">0,00 €</b></span>
           <span><small>Suplementos aplicables</small><b id="supplementPrice">0,00 €</b></span>
           <span><small id="tollLabel">Peaje de la ruta</small><b id="tollPrice">0,00 €</b></span>
         </div>
@@ -336,6 +375,42 @@
         </div>
       </article>
     </section>
+      </section>
+
+      <section class="tab-panel instructions-panel" id="instructionsPanel" role="tabpanel" aria-labelledby="instructionsTab" hidden>
+        <div class="instructions-card">
+          <span class="eyebrow">GUÍA DE USO Y CRITERIOS DE CÁLCULO</span>
+          <h2>Cómo utilizar Orbe Taxi</h2>
+          <ol>
+            <li>Escribe una dirección de origen y otra de destino. El botón GPS permite usar la ubicación actual como origen.</li>
+            <li>Ajusta la fecha, la hora, el tipo de servicio y los suplementos. La hora se mantiene actualizada hasta que la edites.</li>
+            <li>Activa los peajes solo si deseas comparar también esas alternativas. Si conoces un importe distinto, puedes introducirlo manualmente.</li>
+            <li>Pulsa «Calcular rutas y precio». La aplicación abrirá la pestaña de mapa con las alternativas disponibles.</li>
+            <li>Selecciona una ruta para consultar su distancia, duración, composición de vías y estimación económica.</li>
+          </ol>
+
+          <h3>Cómo se aplican las tarifas</h3>
+          <ul>
+            <li>Si origen y destino están dentro del APC de Granada, se aplican las tarifas urbanas autorizadas.</li>
+            <li>En urbano, los tramos estimados por debajo de 30 km/h se valoran por tiempo y los tramos a 30 km/h o más por distancia. La carrera mínima actúa siempre como importe mínimo antes de suplementos.</li>
+            <li>Si el recorrido sale del APC, se aplican las tarifas interurbanas 7 u 8 según fecha y hora, con circuito cerrado por defecto salvo acuerdo expreso.</li>
+            <li>Los servicios contratados previamente a precio cerrado muestran la referencia de Tarifa 6 y se rigen por el importe comunicado.</li>
+          </ul>
+
+          <div class="instructions-note">
+            <strong>Consulta informativa basada en normativa oficial</strong>
+            <p>Orbe Taxi tiene en cuenta ordenanzas municipales, normativa autonómica, municipios integrantes del APC y tarifas oficiales publicadas. La circulación lenta se aproxima a partir de los tiempos previstos para cada tramo de la ruta; el importe real y legalmente exigible es el que resulte del taxímetro homologado, salvo los supuestos autorizados de precio cerrado.</p>
+            <p><strong>Las tarifas no se actualizan automáticamente.</strong> Su revisión y actualización dependen del administrador o distribuidor de la aplicación. Si una nueva resolución modifica los importes o sus condiciones, deberá comprobarse la publicación oficial y distribuirse una versión actualizada antes de utilizar los nuevos valores.</p>
+          </div>
+          <div class="instructions-links">
+            <a href="https://www.juntadeandalucia.es/boja/2023/170/15" target="_blank" rel="noreferrer">Tarifas urbanas APC ↗</a>
+            <a href="https://www.juntadeandalucia.es/boja/2026/49/46" target="_blank" rel="noreferrer">Tarifas interurbanas ↗</a>
+            <a href="https://www.juntadeandalucia.es/boja/2022/68/40" target="_blank" rel="noreferrer">Régimen tarifario ↗</a>
+            <a href="https://www.juntadeandalucia.es/boja/2024/26/33" target="_blank" rel="noreferrer">Municipios APC ↗</a>
+          </div>
+        </div>
+      </section>
+    </main>
     <footer class="footer">Orbe Taxi · Prototipo privado para simulación de servicios · Granada</footer>
   </div>
 
@@ -357,14 +432,8 @@
     const COLORS = ["#0b8f5b","#f4a72c","#6c74de"];
     const DARK_COLORS = ["#47e5a5","#ffc04d","#aab2ff"];
     const APC_SUPPLEMENT = .53;
-    const SAMPLE_ROUTES = [
-      {name:"Más rápida con peaje",via:"A-92 · A-45 · AP-46 · MA-20",distanceKm:126.4,durationMin:86,geometry:[[-3.5986,37.1773],[-4.151,37.166],[-4.421,36.91],[-4.499,36.676],[-4.488,36.675]],mix:{motorway:84,national:10,secondary:6},tollRoad:"AP-46"},
-      {name:"Alternativa sin peaje",via:"A-92 · A-45 · MA-20",distanceKm:129.7,durationMin:96,geometry:[[-3.5986,37.1773],[-4.151,37.166],[-4.421,36.91],[-4.44,36.79],[-4.488,36.675]],mix:{motorway:76,national:16,secondary:8},tollRoad:null},
-      {name:"Alternativa costera",via:"A-44 · A-7",distanceKm:139.8,durationMin:106,geometry:[[-3.5986,37.1773],[-3.607,36.96],[-3.93,36.74],[-4.488,36.675]],mix:{motorway:89,national:4,secondary:7},tollRoad:null}
-    ];
-
     const $ = id => document.getElementById(id);
-    const state = {rawRoutes:SAMPLE_ROUTES,routes:SAMPLE_ROUTES,selected:0,isApc:false,serviceType:"immediate",routePreference:"all",manualTolls:{},luggage:0,currentCoords:null,currentAccuracy:null,map:null,mapReady:false,markers:[],routeLayers:[],locationMarker:null,accuracyCircle:null,gpsWatchId:null,gpsTimer:null,gpsTrackingActive:false};
+    const state = {rawRoutes:[],routes:[],selected:0,isApc:false,serviceType:"immediate",routePreference:"no-toll",manualTolls:{},luggage:0,currentCoords:null,currentAccuracy:null,map:null,mapReady:false,markers:[],routeLayers:[],locationMarker:null,accuracyCircle:null,gpsWatchId:null,gpsTimer:null,gpsTrackingActive:false};
     const euros = value => new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(value || 0);
     const normalize = value => (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
     const isApcMunicipality = value => APC.has(normalize(value));
@@ -410,8 +479,8 @@
       const day = parsed.getDay();
       const hour = Number(time.split(":")[0]);
       const holiday = HOLIDAYS_2026.has(date);
-      if ((day === 6 || holiday) && hour >= 1 && hour < 6) return URBAN_TARIFFS.N;
-      if (day === 6 || holiday || (day === 5 && hour >= 21) || hour >= 22 || hour < 7 || (date >= "2026-12-24" && date <= "2026-12-31")) return URBAN_TARIFFS[2];
+      if ((day === 0 || day === 6 || holiday) && hour >= 1 && hour < 6) return URBAN_TARIFFS.N;
+      if (day === 0 || day === 6 || holiday || (day === 5 && hour >= 21) || hour >= 22 || hour < 7 || (date >= "2026-12-24" && date <= "2026-12-31")) return URBAN_TARIFFS[2];
       return URBAN_TARIFFS[1];
     }
     function activeTariff() { return state.isApc ? getUrbanTariff() : getInterurbanTariff(); }
@@ -440,6 +509,24 @@
       const passages=circuitClosed?2:1;
       return {amount:rate.amount*passages,perPass:rate.amount,label:rate.label+" · "+passages+" "+(passages===1?"paso":"pasos"),known:rate.known,manual:false};
     }
+    function urbanMeterCharge(route,tariff) {
+      const available=(route.meterSegments||[]).filter(segment=>segment.distanceKm>=0 && segment.durationMin>0);
+      const segments=available.length?available:[{distanceKm:route.distanceKm,durationMin:route.durationMin}];
+      let distanceKm=0,slowMinutes=0,amount=0;
+      segments.forEach(segment=>{
+        const km=Math.max(0,Number(segment.distanceKm)||0);
+        const minutes=Math.max(0,Number(segment.durationMin)||0);
+        const speed=minutes>0?km/(minutes/60):Infinity;
+        if (speed<30) {
+          slowMinutes+=minutes;
+          amount+=minutes/60*tariff.waitHour;
+        } else {
+          distanceKm+=km;
+          amount+=km*tariff.km;
+        }
+      });
+      return {amount,distanceKm,slowMinutes};
+    }
     function quoteFor(route) {
       const tariff = activeTariff();
       const circuitClosed = !state.isApc && $("circuitClosed").checked;
@@ -448,12 +535,14 @@
       const flag = !pickup && (state.isApc || route.distanceKm < 12);
       const base = pickup ? tariff.minimum : flag ? tariff.flagDrop : 0;
       const baseLabel = pickup ? "Precio base de recogida" : flag ? state.isApc ? "Bajada de bandera urbana" : "Bajada de bandera (< 12 km)" : "Sin bajada de bandera (≥ 12 km)";
-      const distance = billedKm * tariff.km;
+      const meter=state.isApc?urbanMeterCharge(route,tariff):null;
+      const distance = meter?meter.amount:billedKm * tariff.km;
       const waitMinutes = Math.max(0,Number($("waitMinutes").value) || 0);
       const wait = waitMinutes / 60 * tariff.waitHour;
+      const minimumAdjustment=Math.max(0,tariff.minimum-(base+distance+wait));
       const supplements = state.isApc ? ($("stationExit").checked ? APC_SUPPLEMENT : 0) + state.luggage * APC_SUPPLEMENT : 0;
       const toll=tollFor(route,circuitClosed);
-      return {tariff,circuitClosed,billedKm,base,baseLabel,distance,wait,waitMinutes,supplements,toll,total:base+distance+wait+supplements+toll.amount};
+      return {tariff,circuitClosed,billedKm,base,baseLabel,distance,meter,wait,waitMinutes,minimumAdjustment,supplements,toll,total:base+distance+wait+minimumAdjustment+supplements+toll.amount};
     }
 
     function renderTariff() {
@@ -480,16 +569,22 @@
       const route = state.routes[state.selected];
       if (!route) return;
       const q = quoteFor(route);
+      $("tariffCard").hidden=false;
+      $("detailsSection").hidden=false;
       $("selectedRouteName").textContent = route.name;
       $("totalPrice").textContent = euros(q.total);
       $("baseLabel").textContent = q.baseLabel;
       $("basePrice").textContent = euros(q.base);
-      $("distanceLabel").textContent = q.circuitClosed
-        ? route.distanceKm.toFixed(1).replace(".",",") + " km × 2 (circuito cerrado) = " + q.billedKm.toFixed(1).replace(".",",") + " km × " + euros(q.tariff.km)
-        : q.billedKm.toFixed(1).replace(".",",") + " km × " + euros(q.tariff.km);
+      $("distanceLabel").textContent = q.meter
+        ? q.meter.distanceKm.toFixed(1).replace(".",",") + " km a ≥ 30 km/h + " + Math.round(q.meter.slowMinutes) + " min a < 30 km/h"
+        : q.circuitClosed
+          ? route.distanceKm.toFixed(1).replace(".",",") + " km × 2 (circuito cerrado) = " + q.billedKm.toFixed(1).replace(".",",") + " km × " + euros(q.tariff.km)
+          : q.billedKm.toFixed(1).replace(".",",") + " km × " + euros(q.tariff.km);
       $("distancePrice").textContent = euros(q.distance);
       $("waitLabel").textContent = "Espera prevista (" + q.waitMinutes + " min)";
       $("waitPrice").textContent = euros(q.wait);
+      $("minimumLabel").textContent = q.minimumAdjustment>0 ? "Ajuste hasta carrera mínima ("+euros(q.tariff.minimum)+")" : "Carrera mínima ya alcanzada ("+euros(q.tariff.minimum)+")";
+      $("minimumPrice").textContent = euros(q.minimumAdjustment);
       $("supplementPrice").textContent = euros(q.supplements);
       $("tollLabel").textContent = q.toll.label;
       $("tollPrice").textContent = euros(q.toll.amount);
@@ -506,6 +601,12 @@
     }
     function renderRoutes() {
       $("routeList").innerHTML = "";
+      if (!state.routes.length) {
+        $("routeList").innerHTML='<div class="empty-routes">Todavía no hay ningún recorrido calculado. Completa la simulación y pulsa «Calcular rutas y precio».</div>';
+        $("tariffCard").hidden=true;
+        $("detailsSection").hidden=true;
+        return;
+      }
       state.routes.forEach((route,index) => {
         const q = quoteFor(route);
         const button = document.createElement("button");
@@ -513,7 +614,7 @@
         button.className = "route-card" + (index === state.selected ? " selected" : "");
         const tollText=q.toll.manual ? "Manual · "+euros(q.toll.amount)+" total" : route.tollRoad==="AP-46" ? "AP-46 · "+euros(q.toll.perPass)+"/paso" : route.tollRoad ? route.tollRoad+" · verificar" : "No";
         button.innerHTML = '<span class="route-number">' + (index + 1) + '</span><span class="route-info"><span class="route-title"><strong>' + escapeHtml(route.name) + '</strong>' + (index === 0 ? '<em>RECOMENDADA</em>' : '') + '</span><span class="via">' + escapeHtml(route.via) + '</span><span class="metrics"><b>' + route.distanceKm.toFixed(1).replace(".",",") + ' km</b> · ' + route.durationMin + ' min · Peaje: ' + escapeHtml(tollText) + '</span></span><span class="route-price"><small>Total estimado</small><strong>' + euros(q.total) + '</strong></span>';
-        button.addEventListener("click",() => { state.selected=index; renderRoutes(); renderSummary(); drawRoutes(true); });
+        button.addEventListener("click",() => { state.selected=index; renderRoutes(); drawRoutes(true); });
         $("routeList").appendChild(button);
       });
       renderSummary();
@@ -526,12 +627,20 @@
       state.routePreference=include?"all":"no-toll";
       state.routes=applyRoutePreference(state.rawRoutes);
       state.selected=0;
+      if (!state.rawRoutes.length) {
+        renderRoutes();
+        $("status").textContent=include
+          ? "Se incluirán las rutas con peaje cuando calcules el recorrido."
+          : "Los peajes están desactivados; se buscarán alternativas sin peaje.";
+        return;
+      }
       if (state.routes.length) {
         renderRoutes();
         drawRoutes(true);
         $("status").textContent=include?"Las rutas con peaje se mostrarán junto a las demás alternativas.":"Se evitarán las rutas con peaje.";
       } else {
-        $("routeList").innerHTML="";
+        renderRoutes();
+        drawRoutes(false);
         $("status").textContent="No se ha encontrado una alternativa que cumpla esta preferencia.";
       }
     }
@@ -711,17 +820,19 @@
         geometry.push(...(index?shape.slice(1):shape));
       });
       if (geometry.length<2) throw new Error("La alternativa sin peaje no contiene geometría");
-      const steps=maneuvers.map(maneuver=>({name:(maneuver.street_names||[]).join(" ")||maneuver.instruction||"",ref:"",distance:(Number(maneuver.length)||0)*1000}));
+      const steps=maneuvers.map(maneuver=>({name:(maneuver.street_names||[]).join(" ")||maneuver.instruction||"",ref:"",distance:(Number(maneuver.length)||0)*1000,duration:Number(maneuver.time)||0}));
       const composition=routeComposition(steps);
       const roads=[...new Set(maneuvers.flatMap(maneuver=>maneuver.street_names||[]).filter(Boolean))].slice(0,4);
-      return {name:"Alternativa sin peaje",via:roads.join(" · ")||"Red viaria sin peaje",distanceKm:Number(trip.summary&&trip.summary.length)||steps.reduce((sum,step)=>sum+step.distance,0)/1000,durationMin:Math.round((Number(trip.summary&&trip.summary.time)||0)/60),geometry,mix:composition.mix,tollRoad:null,fromNoTollSearch:true};
+      const meterSegments=steps.map(step=>({distanceKm:step.distance/1000,durationMin:step.duration/60})).filter(segment=>segment.durationMin>0);
+      return {name:"Alternativa sin peaje",via:roads.join(" · ")||"Red viaria sin peaje",distanceKm:Number(trip.summary&&trip.summary.length)||steps.reduce((sum,step)=>sum+step.distance,0)/1000,durationMin:Math.round((Number(trip.summary&&trip.summary.time)||0)/60),geometry,mix:composition.mix,tollRoad:null,fromNoTollSearch:true,meterSegments};
     }
     function prepareRoadRoute(item,fromNoTollSearch) {
       const steps=(item.legs||[]).flatMap(leg=>leg.steps||[]);
       const composition=routeComposition(steps);
       if (fromNoTollSearch) composition.tollRoad=null;
       const roads=[...new Set(steps.map(step=>step.ref||step.name).filter(Boolean))].slice(0,4);
-      return {name:"Ruta",via:roads.join(" · ")||"Red viaria principal",distanceKm:item.distance/1000,durationMin:Math.round(item.duration/60),geometry:item.geometry.coordinates,mix:composition.mix,tollRoad:composition.tollRoad,fromNoTollSearch};
+      const meterSegments=steps.map(step=>({distanceKm:(Number(step.distance)||0)/1000,durationMin:(Number(step.duration)||0)/60})).filter(segment=>segment.durationMin>0);
+      return {name:"Ruta",via:roads.join(" · ")||"Red viaria principal",distanceKm:item.distance/1000,durationMin:Math.round(item.duration/60),geometry:item.geometry.coordinates,mix:composition.mix,tollRoad:composition.tollRoad,fromNoTollSearch,meterSegments};
     }
     function mergeRoadRoutes(regularRoutes,noTollRoutes) {
       const merged=[];
@@ -771,7 +882,8 @@
         if (!state.routes.length) throw new Error("No se encontró una ruta que cumpla la preferencia seleccionada.");
         state.selected=0;
         renderRoutes();
-        drawRoutes(true);
+        activateTab("map");
+        setTimeout(()=>drawRoutes(true),80);
         $("status").textContent=state.isApc
           ?"Trayecto dentro del APC ("+originPlace.municipality+" → "+destinationPlace.municipality+") · tarifa urbana."
           :state.routes.length+" "+(state.routes.length===1?"ruta encontrada":"rutas encontradas")+" · tarifa interurbana y circuito cerrado.";
@@ -829,6 +941,41 @@
       renderRoutes();
     }
     function refreshPrices() { renderRoutes(); }
+
+    function activateTab(tabName) {
+      document.querySelectorAll(".tab-button").forEach(button=>{
+        button.setAttribute("aria-selected",String(button.dataset.tab===tabName));
+      });
+      $("simulationPanel").hidden=tabName!=="simulation";
+      $("mapRoutesPanel").hidden=tabName!=="map";
+      $("instructionsPanel").hidden=tabName!=="instructions";
+      if (tabName==="map") setTimeout(()=>{
+        if (state.map) state.map.invalidateSize();
+        drawRoutes(false);
+        renderCurrentLocation(false);
+      },50);
+    }
+
+    const UI_ZOOM_LEVELS=[.8,.9,1,1.1,1.2,1.3];
+    let uiZoomIndex=Math.max(0,UI_ZOOM_LEVELS.findIndex(level=>level===Number(localStorage.getItem("orbe-taxi-ui-zoom")||1)));
+    function applyUiZoom(index) {
+      uiZoomIndex=Math.max(0,Math.min(UI_ZOOM_LEVELS.length-1,index));
+      const level=UI_ZOOM_LEVELS[uiZoomIndex];
+      document.documentElement.style.setProperty("--ui-zoom",String(level));
+      $("uiZoomValue").textContent=Math.round(level*100)+"%";
+      $("uiZoomOut").disabled=uiZoomIndex===0;
+      $("uiZoomIn").disabled=uiZoomIndex===UI_ZOOM_LEVELS.length-1;
+      localStorage.setItem("orbe-taxi-ui-zoom",String(level));
+      setTimeout(()=>{
+        if (state.map) state.map.invalidateSize();
+        drawRoutes(false);
+      },80);
+    }
+
+    document.querySelectorAll(".tab-button").forEach(button=>button.addEventListener("click",()=>activateTab(button.dataset.tab)));
+    $("uiZoomOut").addEventListener("click",()=>applyUiZoom(uiZoomIndex-1));
+    $("uiZoomIn").addEventListener("click",()=>applyUiZoom(uiZoomIndex+1));
+    applyUiZoom(uiZoomIndex);
     $("calculateButton").addEventListener("click",calculateRoutes);
     $("gpsButton").addEventListener("click",useMyLocation);
     $("immediateButton").addEventListener("click",()=>selectService("immediate"));
