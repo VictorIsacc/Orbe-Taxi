@@ -461,7 +461,7 @@
     const MAX_ROUTE_PRICE_DIFFERENCE = 7;
     const MIN_ROUTE_PRICE_DIFFERENCE = 1;
     const $ = id => document.getElementById(id);
-    const state = {rawRoutes:[],routes:[],selected:0,isApc:false,serviceType:"immediate",routePreference:"no-toll",manualTolls:{},luggage:0,currentCoords:null,currentAccuracy:null,map:null,mapReady:false,markers:[],routeLayers:[],locationMarker:null,accuracyCircle:null,gpsWatchId:null,gpsTimer:null,gpsTrackingActive:false,calculationId:0,taxiRouteAvailable:false};
+    const state = {rawRoutes:[],routes:[],selected:0,isApc:false,serviceType:"immediate",routePreference:"no-toll",manualTolls:{},luggage:0,currentCoords:null,currentAccuracy:null,useCurrentLocationAsOrigin:false,map:null,mapReady:false,markers:[],routeLayers:[],locationMarker:null,accuracyCircle:null,gpsWatchId:null,gpsTimer:null,gpsTrackingActive:false,gpsSessionId:0,calculationId:0,taxiRouteAvailable:false};
     const euros = value => new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(value || 0);
     const normalize = value => (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
     const isApcMunicipality = value => APC.has(normalize(value));
@@ -781,7 +781,7 @@
     function updateCurrentLocation(position,center) {
       state.currentCoords=[position.coords.longitude,position.coords.latitude];
       state.currentAccuracy=position.coords.accuracy;
-      $("origin").value="Mi ubicación actual";
+      if (state.useCurrentLocationAsOrigin) $("origin").value="Mi ubicación actual";
       renderCurrentLocation(center);
     }
     function clearCurrentLocation() {
@@ -798,6 +798,7 @@
       if (state.gpsTimer) clearTimeout(state.gpsTimer);
       state.gpsTimer=null;
       state.gpsTrackingActive=false;
+      state.gpsSessionId++;
     }
     function updateGpsButton() {
       const button=$("gpsButton");
@@ -988,7 +989,7 @@
       $("calculateButton").textContent="Calculando alternativas…";
       $("status").textContent="Localizando las direcciones…";
       try {
-        const originPlace = state.currentCoords && originText==="Mi ubicación actual" ? await reverseGeocode(state.currentCoords) : await geocode(originText);
+        const originPlace = state.useCurrentLocationAsOrigin && state.currentCoords ? await reverseGeocode(state.currentCoords) : await geocode(originText);
         const destinationPlace = await geocode(destinationText);
         if (calculationId!==state.calculationId) return;
         state.isApc=isApcMunicipality(originPlace.municipality)&&isApcMunicipality(destinationPlace.municipality);
@@ -1044,12 +1045,15 @@
         return;
       }
       stopGpsWatch();
+      state.useCurrentLocationAsOrigin=true;
       state.gpsTrackingActive=true;
+      const gpsSessionId=state.gpsSessionId;
       updateGpsButton();
       $("status").textContent="Obteniendo tu ubicación y activando su actualización…";
       setGpsPermissionStatus("Solicitando permiso de ubicación…","checking");
       let hasPosition=false;
       state.gpsWatchId=navigator.geolocation.watchPosition(position => {
+        if (!state.gpsTrackingActive || gpsSessionId!==state.gpsSessionId) return;
         hasPosition=true;
         if (state.gpsTimer) clearTimeout(state.gpsTimer);
         state.gpsTimer=null;
@@ -1057,8 +1061,10 @@
         $("status").textContent="GPS activo · precisión aproximada "+Math.round(position.coords.accuracy)+" m. Pulsa «Calcular» para actualizar la simulación; el precio no cambia automáticamente.";
         setGpsPermissionStatus("Permiso concedido · GPS activo · precisión aproximada "+Math.round(position.coords.accuracy)+" m.","granted");
       },error => {
+        if (!state.gpsTrackingActive || gpsSessionId!==state.gpsSessionId) return;
         if (error.code===1 || !hasPosition) {
           stopGpsWatch();
+          state.useCurrentLocationAsOrigin=false;
           updateGpsButton();
           $("status").textContent=location.protocol==="file:"
             ?"El GPS necesita abrir la página mediante HTTPS o localhost. En GitHub Pages funcionará al conceder permiso."
@@ -1067,8 +1073,10 @@
         } else $("status").textContent="El GPS está esperando una señal más estable; conservará la última ubicación conocida.";
       },{enableHighAccuracy:true,timeout:20000,maximumAge:1000});
       state.gpsTimer=setTimeout(()=>{
+        if (!state.gpsTrackingActive || gpsSessionId!==state.gpsSessionId) return;
         if (!hasPosition) {
           stopGpsWatch();
+          state.useCurrentLocationAsOrigin=false;
           updateGpsButton();
           $("status").textContent="El GPS está tardando demasiado. Comprueba que la ubicación precisa esté activada.";
           setGpsPermissionStatus("Sin respuesta del GPS · comprueba la ubicación precisa del teléfono.","checking");
@@ -1108,7 +1116,8 @@
       state.taxiRouteAvailable=false;
       state.manualTolls={};
       state.luggage=0;
-      $("origin").value=keepGps && state.currentCoords ? "Mi ubicación actual" : "";
+      state.useCurrentLocationAsOrigin=keepGps && !!state.currentCoords;
+      $("origin").value=state.useCurrentLocationAsOrigin ? "Mi ubicación actual" : "";
       $("destination").value="";
       $("includeTolls").checked=false;
       $("manualTollPrice").value="";
@@ -1192,9 +1201,9 @@
     });
     $("luggageMinus").addEventListener("click",()=>{ state.luggage=Math.max(0,state.luggage-1); $("luggageCount").textContent=state.luggage; refreshPrices(); });
     $("luggagePlus").addEventListener("click",()=>{ state.luggage=Math.min(5,state.luggage+1); $("luggageCount").textContent=state.luggage; refreshPrices(); });
-    $("swapButton").addEventListener("click",()=>{ const value=$("origin").value; $("origin").value=$("destination").value; $("destination").value=value; stopGpsWatch(); updateGpsButton(); clearCurrentLocation(); });
+    $("swapButton").addEventListener("click",()=>{ const value=$("origin").value; $("origin").value=$("destination").value; $("destination").value=value; state.useCurrentLocationAsOrigin=false; stopGpsWatch(); updateGpsButton(); clearCurrentLocation(); });
     $("includeTolls").addEventListener("change",()=>setIncludeTolls($("includeTolls").checked));
-    $("origin").addEventListener("input",()=>{ if ($("origin").value!=="Mi ubicación actual") { stopGpsWatch(); updateGpsButton(); clearCurrentLocation(); } });
+    $("origin").addEventListener("input",()=>{ state.useCurrentLocationAsOrigin=false; stopGpsWatch(); updateGpsButton(); clearCurrentLocation(); });
     $("themeButton").addEventListener("click",() => {
       const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
       document.documentElement.dataset.theme=next;
