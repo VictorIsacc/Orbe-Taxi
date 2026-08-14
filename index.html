@@ -224,7 +224,7 @@
 
         <div class="form-block time-grid">
           <label><span class="field-label">Fecha del servicio</span><input id="serviceDate" type="date"></label>
-          <label><span class="field-label">Hora prevista</span><input id="serviceTime" type="time" value="10:30"></label>
+          <label><span class="field-label">Hora prevista</span><input id="serviceTime" type="time"></label>
         </div>
 
         <fieldset>
@@ -374,7 +374,26 @@
       const offset = date.getTimezoneOffset() * 60000;
       return new Date(date.getTime() - offset).toISOString().slice(0,10);
     }
-    $("serviceDate").value = isoLocalDate(new Date());
+    function isoLocalTime(date) {
+      return String(date.getHours()).padStart(2,"0")+":"+String(date.getMinutes()).padStart(2,"0");
+    }
+    let serviceDateManuallyEdited=false;
+    let serviceTimeManuallyEdited=false;
+    function syncCurrentServiceMoment(updatePrices) {
+      const now=new Date();
+      let changed=false;
+      if (!serviceDateManuallyEdited) {
+        const currentDate=isoLocalDate(now);
+        if ($("serviceDate").value!==currentDate) { $("serviceDate").value=currentDate; changed=true; }
+      }
+      if (!serviceTimeManuallyEdited) {
+        const currentTime=isoLocalTime(now);
+        if ($("serviceTime").value!==currentTime) { $("serviceTime").value=currentTime; changed=true; }
+      }
+      if (changed && updatePrices) renderRoutes();
+    }
+    syncCurrentServiceMoment(false);
+    setInterval(()=>syncCurrentServiceMoment(true),1000);
 
     function getInterurbanTariff() {
       const date = $("serviceDate").value;
@@ -814,8 +833,8 @@
     $("gpsButton").addEventListener("click",useMyLocation);
     $("immediateButton").addEventListener("click",()=>selectService("immediate"));
     $("pickupButton").addEventListener("click",()=>selectService("pickup"));
-    $("serviceDate").addEventListener("change",refreshPrices);
-    $("serviceTime").addEventListener("change",refreshPrices);
+    $("serviceDate").addEventListener("input",()=>{ serviceDateManuallyEdited=true; refreshPrices(); });
+    $("serviceTime").addEventListener("input",()=>{ serviceTimeManuallyEdited=true; refreshPrices(); });
     $("circuitClosed").addEventListener("change",refreshPrices);
     $("closedPrice").addEventListener("change",refreshPrices);
     $("stationExit").addEventListener("change",refreshPrices);
