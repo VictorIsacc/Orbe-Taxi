@@ -3,7 +3,7 @@
   "short_name": "Orbe Taxi",
   "description": "Consulta rutas, kilómetros, peajes y tarifas urbanas e interurbanas para servicios de taxi.",
   "lang": "es",
-  "id": "./",
+  "id": "/orbe-taxi-vigabar/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
