@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "orbe-taxi-v5";
+const CACHE_NAME = "orbe-taxi-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
